@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 
 master = pd.DataFrame()
 
@@ -48,11 +49,13 @@ def open_and_pull(file, date):
         df = df[df['Report Date'] == report_date]
     else:
         df = df[df['Report date'] == report_date]
+        df = df.rename(columns={'Report date':'Report Date'})
     print(len(df))
     return df
 
 def pivot_maker(df, value):
-    pivot = pd.pivot_table(df, index='Sector/Directorate/HSCP', values=value, aggfunc=np.sum)
+    pivot = pd.pivot_table(df[df['Report Date'] == (pd.Timestamp.now() - pd.DateOffset(months=1)).strftime('2020/05')],
+                           index='Sector/Directorate/HSCP', values=value, aggfunc=np.sum)
     return pivot
 
 
@@ -64,13 +67,17 @@ master = pd.DataFrame()
 dates = build_13_month_dates()
 for month in dates:
     file, date = find_file(month)
-    # date = find_file(month)[1]
     df = open_and_pull(file, date)
     master = master.append(df, ignore_index=True)
     print(len(master))
 print(master.columns)
 
 
+WTE = pivot_maker(master, 'WTE')
 
 
-master.to_csv('/home/danny/workspace/abs-full.csv', index=False)
+with pd.ExcelWriter('/media/wdrive/storyboards/abs-full.xlsx') as writer:
+    master.to_excel(writer, sheet_name='Data', index=False)
+    WTE.to_excel(writer, sheet_name='WTE')
+
+writer.save()
