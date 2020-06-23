@@ -66,9 +66,9 @@ def NES_compliance(df):
 dates = build_13_month_dates()
 
 # get all files
-files = os.listdir('/media/wdrive/Learnpro/HSE Sharps and Skins')
+files = clean_reg_files(os.listdir('/media/wdrive/Learnpro/HSE Sharps and Skins'))
 
-files = clean_reg_files(files)
+# loop through dates and produce compliance percentages
 for date in dates:
     filename = find_HSE_file(date)
     df = open_HSE_file(filename)
