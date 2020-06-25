@@ -62,7 +62,7 @@ def open_file_read_data(filename):
                 'Nursing Director': 'Board Nurse Director',
                 'Human Resources - Corporate': 'HR and OD',
                 'North': 'North Sector'
-                })
+                }, inplace=True)
     return df
 
 
@@ -135,4 +135,5 @@ for sector in ['Clyde Sector', 'Diagnostics Directorate', 'North Sector', 'Regio
 
 
 # output data
-cms_master.to_excel('/home/danny/workspace/cms_data.xlsx', index=False)
+today = pd.Timestamp.now().strftime('%Y%m%d')
+cms_master.to_excel('/media/wdrive/storyboards/cms_data'+today+'.xlsx', index=False)

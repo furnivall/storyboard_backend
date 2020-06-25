@@ -45,6 +45,7 @@ def open_and_pull(file, date):
     df = pd.read_excel(file)
     df = df[df['Sector/Directorate/HSCP'] != 'Non Paid Employees']
     df = df[df['Sector/Directorate/HSCP'] != 'GP Trainees']
+    df.replace({'Diagnostic Services':'Diagnostics Directorate'}, inplace=True)
     if "Report Date" in df.columns:
         df = df[df['Report Date'] == report_date]
     else:
@@ -75,8 +76,8 @@ print(master.columns)
 
 WTE = pivot_maker(master, 'WTE')
 
-
-with pd.ExcelWriter('/media/wdrive/storyboards/abs-full.xlsx') as writer:
+today = pd.Timestamp.now().strftime('%Y%m%d')
+with pd.ExcelWriter('/media/wdrive/storyboards/abs-full'+today+'.xlsx') as writer:
     master.to_excel(writer, sheet_name='Data', index=False)
     WTE.to_excel(writer, sheet_name='WTE')
 
