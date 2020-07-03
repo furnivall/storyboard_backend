@@ -107,31 +107,38 @@ dates = build_13_month_dates()
 
 cms_master = pd.DataFrame()
 
-for sector in ['Clyde Sector', 'Diagnostics Directorate', 'North Sector', 'Regional Services', 'South Sector',
-               "Women & Children's", 'Acute Corporate', 'Board Administration', 'Board Medical Director',
-               'Board Nurse Director', 'Centre For Population Health', 'Corporate Communications', 'eHealth',
-               'Estates and Facilities', 'Finance', 'HR and OD', 'Public Health', 'East Dunbartonshire - Oral Health',
-               'East Dunbartonshire HSCP', 'East Renfrewshire HSCP', 'Glasgow City HSCP', 'Inverclyde HSCP',
-               'Renfrewshire HSCP', 'West Dunbartonshire HSCP', 'Diagnostic Services', 'Acute Directors']:
+# for sector in ['Clyde Sector', 'Diagnostics Directorate', 'North Sector', 'Regional Services', 'South Sector',
+#                "Women & Children's", 'Acute Corporate', 'Board Administration', 'Board Medical Director',
+#                'Board Nurse Director', 'Centre For Population Health', 'Corporate Communications', 'eHealth',
+#                'Estates and Facilities', 'Finance', 'HR and OD', 'Public Health', 'East Dunbartonshire - Oral Health',
+#                'East Dunbartonshire HSCP', 'East Renfrewshire HSCP', 'Glasgow City HSCP', 'Inverclyde HSCP',
+#                'Renfrewshire HSCP', 'West Dunbartonshire HSCP', 'Diagnostic Services', 'Acute Directors']:
 
-    for date in dates:
-        filename = find_relevant_file(date)
-        df = open_file_read_data(filename)
-        df = df[df['Sector/ Directorate'] == sector]
-        dataframe_line = {'Sector/Directorate/HSCP': sector, 'Report Date': pd.to_datetime(date, format='%b-%y'),
-                          'Dismissals': len(get_dismissals(df, date)),
-                          'Suspensions > 8 weeks': len(get_suspended_8w(df)),
-                          'Grievances': len(get_grievances(df)), 'Disciplinaries': len(get_disciplinaries(df)),
-                          'Bullying Cases': len(get_bullying_cases(df))}
+abs_13mo = pd.read_excel('/media/wdrive/workforce monthly reports/monthly_reports/May-20 Snapshot/GG&C_Balanced_Scorecard_13m - May-20.xlsx')
+depts = abs_13mo['Department'].unique().tolist()
+
+
+for date in dates:
+    filename = find_relevant_file(date)
+    df = open_file_read_data(filename)
+    print(filename)
+    for dept in depts:
+        print(dept)
+        curr_df = df[df['Ward/ Department'] == dept]
+        dataframe_line = {'Department': dept, 'Report Date': pd.to_datetime(date, format='%b-%y'),
+                          'Dismissals': len(get_dismissals(curr_df, date)),
+                          'Suspensions > 8 weeks': len(get_suspended_8w(curr_df)),
+                          'Grievances': len(get_grievances(curr_df)), 'Disciplinaries': len(get_disciplinaries(curr_df)),
+                          'Bullying Cases': len(get_bullying_cases(curr_df))}
 
         # build single-line dataframe for given date/sector combination
         current_df = pd.DataFrame({k: [v] for k, v in dataframe_line.items()})
 
-        # add to master file
+    # add to master file
         cms_master = cms_master.append(current_df, ignore_index=True)
 
-        # print completion dialog
-        print(f'Sector: {sector}, date: {date} - Complete')
+    # print completion dialog
+        print(f'Department: {dept}, date: {date} - Complete')
 
 
 # output data

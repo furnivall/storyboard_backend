@@ -64,9 +64,9 @@ def GGC_compliance(df):
     compliant = df[df['GGC Module'] == 'Complete']
     try:
         compliance_percentage = round(len(compliant) / scope_len * 100, 1)
-        return compliance_percentage
+        return [compliance_percentage, len(compliant), scope_len]
     except ZeroDivisionError:
-        return "No staff eligible"
+        return ["No staff eligible", len(compliant), scope_len]
 
 
 def NES_compliance(df):
@@ -78,9 +78,9 @@ def NES_compliance(df):
 
     try:
         compliance_percentage = round(len(compliant) / scope_len * 100, 1)
-        return compliance_percentage
+        return [compliance_percentage, len(compliant), scope_len]
     except ZeroDivisionError:
-        return "No staff eligible"
+        return ["No staff eligible", len(compliant), scope_len]
 
 
 dates = build_13_month_dates()
@@ -91,26 +91,35 @@ files = clean_reg_files(os.listdir('/media/wdrive/Learnpro/HSE Sharps and Skins'
 
 data = pd.DataFrame()
 # loop through dates and produce compliance percentages
-for sector in ['Clyde Sector', 'Diagnostics Directorate', 'North Sector', 'Regional Services', 'South Sector',
-               "Women & Children's", 'Acute Corporate', 'Board Administration', 'Board Medical Director',
-               'Board Nurse Director', 'Centre For Population Health', 'Corporate Communications', 'eHealth',
-               'Estates and Facilities', 'Finance', 'HR and OD', 'Public Health', 'East Dunbartonshire - Oral Health',
-               'East Dunbartonshire HSCP', 'East Renfrewshire HSCP', 'Glasgow City HSCP', 'Inverclyde HSCP',
-               'Renfrewshire HSCP', 'West Dunbartonshire HSCP', 'Diagnostic Services', 'Acute Directors']:
+# for sector in ['Clyde Sector', 'Diagnostics Directorate', 'North Sector', 'Regional Services', 'South Sector',
+#                "Women & Children's", 'Acute Corporate', 'Board Administration', 'Board Medical Director',
+#                'Board Nurse Director', 'Centre For Population Health', 'Corporate Communications', 'eHealth',
+#                'Estates and Facilities', 'Finance', 'HR and OD', 'Public Health', 'East Dunbartonshire - Oral Health',
+#                'East Dunbartonshire HSCP', 'East Renfrewshire HSCP', 'Glasgow City HSCP', 'Inverclyde HSCP',
+#                'Renfrewshire HSCP', 'West Dunbartonshire HSCP', 'Diagnostic Services', 'Acute Directors']:
 
-    for date in dates:
-        filename = find_HSE_file(date)
-        df = open_HSE_file(filename)
-        df = df[df['Sector/Directorate/HSCP'] == sector]
-        ggc = GGC_compliance(df)
-        nes = NES_compliance(df)
-        dataframe_line = {'Sector/Directorate/HSCP': sector, 'Report Date': pd.to_datetime(date, format='%b-%y'),
-                          'Sharps - GGC course %':ggc, 'Sharps - NES percentage':nes}
+abs_13mo = pd.read_excel(
+    '/media/wdrive/workforce monthly reports/monthly_reports/May-20 Snapshot/GG&C_Balanced_Scorecard_13m - May-20.xlsx')
+depts = abs_13mo['Department'].unique().tolist()
+
+for date in dates:
+    filename = find_HSE_file(date)
+    df = open_HSE_file(filename)
+    for dept in depts:
+        curr_df = df[df['department'] == dept]
+        ggc = GGC_compliance(curr_df)
+        print(ggc)
+        nes = NES_compliance(curr_df)
+        dataframe_line = {'Department': dept, 'Report Date': pd.to_datetime(date, format='%b-%y'),
+                          'Sharps - GGC course %': ggc[0], 'Sharps - GGC inscope': ggc[2],
+                          'Sharps - GGC compliant': ggc[1], 'Sharps - NES percentage': nes[0],
+                          'Sharps - NES inscope': nes[2], 'Sharps - NES compliant': nes[1]}
         # build single-line dataframe for given date/sector combination
         current_df = pd.DataFrame({k: [v] for k, v in dataframe_line.items()})
         data = data.append(current_df, ignore_index=True)
-        print(f'{sector} - {date} - GGC percentage = {ggc}%, NES percentage = {nes}')
+        print(f'{dept} - {date} - GGC percentage = {ggc[0]}%, GGC Inscope & Compliant = ({ggc[2]}, {ggc[1]}) '
+              f'NES percentage = {nes}, NES Inscope & Compliant = ({nes[2]}, {nes[1]})',)
 
 print(set_of_directorates)
 today = pd.Timestamp.now().strftime('%Y%m%d')
-data.to_excel('/media/wdrive/storyboards/hse-full'+today+'.xlsx')
+data.to_excel('/media/wdrive/storyboards/hse-sharps'+today+'.xlsx', index=False)
