@@ -79,4 +79,4 @@ for date in dates:
     except FileNotFoundError:
         mh_master.to_excel('/media/wdrive/storyboards/hse-mh-' + today + '.xlsx', index=False)
         exit()
-    mh_master.to_excel('/media/wdrive/storyboards/hse-mh-' + today + '.xlsx', index=False)
+mh_master.to_excel('/media/wdrive/storyboards/hse-mh-' + today + '.xlsx', index=False)
