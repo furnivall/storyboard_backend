@@ -62,5 +62,5 @@ for date in dates:
                           'Falls Compliant': output[1]
                           }
         master_falls = master_falls.append(dataframe_line, ignore_index=True)
-master_falls.to_excel('/media/wdrive/storyboards/hse-falls-' + today + '.xlsx', index=False)
+master_falls.to_excel('/media/wdrive/storyboards)
 
